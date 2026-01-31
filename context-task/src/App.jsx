@@ -1,38 +1,48 @@
-import { useState, createContext } from 'react'
+import { useState, createContext, useEffect } from 'react'
 import { createBrowserRouter } from "react-router";
 import { RouterProvider } from "react-router/dom";
 import './App.css'
 import Signup from './components/Signup';
+import Login from './components/Login'
+import NotFound from './components/NotFound';
+import Home from './components/Home';
 
-const UserContext = createContext(null);
+export const UserContext = createContext(null);
 
 const router = createBrowserRouter([
   {
-    path: "/",
+    path: "/login",
     element: 
       <div>
-        Hello World
-      </div>,
+        <Login />
+      </div>
   },
   {
     path: "/signup",
     element: 
       <div>
         <Signup />
-      </div>,
+      </div>
   },
+  {
+    path: "/home",
+    element: 
+      <div>
+        <Home />
+      </div>
+  },
+  {
+    path: '*',
+    element: <NotFound />
+  }
 ]);
 
 function App() {
-  const [count, setCount] = useState(0)
-
-  function handleSignup() {
-    
-  }
+  const [user, setUser] = useState(null);
 
   return (
     <>
-      <UserContext.Provider value={handleSignup}>
+      <UserContext.Provider value={{ user, setUser }}>
         <RouterProvider router={router} />
       </UserContext.Provider>
     </>

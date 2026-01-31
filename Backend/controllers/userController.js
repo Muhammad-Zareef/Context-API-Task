@@ -20,14 +20,14 @@ const createToken = (user) => {
 
 const login = async (req, res) => {
     try {
-        const { loginEmail, loginPassword, role } = req.body;
-        const user = await User.findOne({ email: loginEmail });
+        const { email, password } = req.body;
+        const user = await User.findOne({ email: email });
         if (!user) return res.send({ status: 404, message: 'User not found' });
-        bcrypt.compare(loginPassword, user.password, function (err, result) {
+        bcrypt.compare(password, user.password, function (err, result) {
             if (result) {
-                const token = createToken({ id: user._id, name: user.name, email: user.email, role: user.role });
-                const oneDay = 24 * 60 * 60 * 1000; // 1 day in milliseconds
-                res.cookie("token", token, { httpOnly: true, secure: true, sameSite: "none", maxAge: oneDay });
+                const token = createToken({ id: user._id, name: user.name, email: user.email });
+                const thirtySeconds = 30 * 1000; // 30 seconds in milliseconds
+                res.cookie("token", token, { httpOnly: true, secure: false, sameSite: "lax", maxAge: thirtySeconds });
                 return res.send({ status: 200, user, token, message: "Login successfully" });
             } else {
                 return res.send({ status: 401, message: "Wrong password" });
@@ -48,11 +48,28 @@ const signup = async (req, res) => {
                 await newUser.save();
                 res.status(200).send({ status: 200, newUser, message: "User has been created successfully" });
             } catch (err) {
-                if (err.code === 11000) return res.status(400).send({ status: 400, success: false, message: "Email already exists. Please use another email" });
+                if (err.code === 11000) return res.status(200).send({ status: 400, success: false, message: "Email already exists. Please use another email" });
                 res.status(500).json({ success: false, status: 500, message: "Internal Server Error" });
             }
         });
     });
+}
+
+const home = async (req, res) => {
+    const { user } = req.user;
+    try {
+        res.send({
+            status: 200,
+            user,
+            message: "Welcome User",
+        });
+    } catch (err) {
+        res.send({
+            err,
+            status: 500,
+            message: "Sorry! Server is not responding",
+        });
+    }
 }
 
 const logout = (req, res) => {
@@ -60,4 +77,4 @@ const logout = (req, res) => {
     res.json({ message: "Logged out successfully" });
 }
 
-module.exports = { getUsers, login, signup, logout };
+module.exports = { getUsers, login, signup, home, logout };
